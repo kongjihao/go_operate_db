@@ -1,0 +1,28 @@
+package main
+
+import (
+	"context"
+
+	"github.com/redis/go-redis/v9"
+)
+
+var rdb *redis.Client
+var ctx = context.Background()
+
+func initRedis() (err error) {
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379", // redis连接地址
+		Password: "",               // 密码，本地redis默认没有密码
+		DB:       0,                // use redis defalt db， 一共0~15
+		PoolSize: 100,              // 连接池大小
+	})
+
+	_, err = rdb.Ping(ctx).Result()
+	return err
+}
+
+// Redis Pipeline 允许通过使用单个 client-server-client 往返执行多个命令来提高性能。区别于一个接一个地执行100个命令，你可以将这些命令放入 pipeline 中，然后使用1次读写操作像执行单个命令一样执行它们。这样做的好处是节省了执行命令的网络往返时间（RTT）。
+// 在下面的示例代码中演示了使用 pipeline 通过一个 write + read 操作来执行多个命令。
+func redisPipelineDemo() error {
+	ctx := context.Background()
+	pipe := rdb.Pipeline()
